@@ -39,6 +39,8 @@ def remove_book(book_id):
             BOOKS.remove(book)
             return True
     return False
+    # BOOKS[:] = [book for book in BOOKS if book['id'] != book_id]
+    # return bool(len(BOOKS) < len(BOOKS[:]))
 
 
 # sanity check route
@@ -73,24 +75,26 @@ def all_books():
         response_object['books'] = BOOKS
     return jsonify(response_object)
 
-
+# update or delete a book
 @app.route('/books/<book_id>', methods=['PUT', 'DELETE'])
 def single_book(book_id):
     response_object = {'status': 'success'}
-    if request.method == 'PUT':
-        post_data = request.get_json()
-        remove_book(book_id)
-        BOOKS.append({
-            'id': uuid.uuid4().hex,
-            'title': post_data.get('title'),
-            'author': post_data.get('author'),
-            'read': post_data.get('read')
-        })
-        response_object['message'] = 'Book updated!'
-    if request.method == 'DELETE':
-        remove_book(book_id)
-        response_object['message'] = 'Book removed!'
-    return jsonify(response_object)
+    if remove_book(book_id):
+        if request.method == 'PUT':
+            post_data = request.get_json()
+            BOOKS.append({
+                'id': uuid.uuid4().hex,
+                'title': post_data.get('title'),
+                'author': post_data.get('author'),
+                'read': post_data.get('read')
+            })
+            response_object['message'] = 'Book updated!'
+        if request.method == 'DELETE':
+            response_object['message'] = 'Book removed!'
+        return jsonify(response_object)
+    else:
+        response_object['message'] = 'Book not found!'
+        return jsonify(response_object), 404
 
 
 if __name__ == '__main__':
