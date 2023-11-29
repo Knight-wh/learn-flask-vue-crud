@@ -3,7 +3,7 @@ import uuid
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-
+# a list of books
 BOOKS = [
     {
         'id': uuid.uuid4().hex,
@@ -46,12 +46,22 @@ def remove_book(book_id):
 def ping_pong():
     return jsonify('pong!')
 
-
+# get all books or add a new book
 @app.route('/books', methods=['GET', 'POST'])
 def all_books():
     response_object = {'status': 'success'}
     if request.method == 'POST':
         post_data = request.get_json()
+        # check for required fields
+        if not post_data.get('title') or not post_data.get('author'):
+            response_object['message'] = 'Missing required fields.'
+            return jsonify(response_object), 400
+        if not post_data.get('read'):
+            post_data['read'] = False
+        # check if book already exists
+        if any(book['title'] == post_data.get('title') and book['author'] == post_data.get('author') for book in BOOKS):
+            response_object['message'] = 'Book already exists!'
+            return jsonify(response_object), 400
         BOOKS.append({
             'id': uuid.uuid4().hex,
             'title': post_data.get('title'),
