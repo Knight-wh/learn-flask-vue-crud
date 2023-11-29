@@ -1,5 +1,21 @@
 # Developing a Single Page App with Flask and Vue.js
 
+### TODO
+
+- [ ] Add proper error handling on both the front and back-end.
+- [ ] Write an automated test for this
+- [x] Handle an invalid payload where the `title`, `author`, and/or `read` is missing
+- [ ] Think of any potential errors on the client or server
+- [x] Think about where `showMessage` should be set to `false`.
+- [x] Try using the Alert component to display errors.
+- [x] Refactor the alert to be dismissible.
+- [ ] Handle the case of an `id` not existing.
+- [ ] Refactor the for loop in the remove_book so that it's more Pythonic.
+- [ ] Clean the component up by moving the methods that make HTTP calls to a untils or services file.
+- [ ] Try to combine some of the methods that contain similar logic, like `handleAddSumit` and `handleEditSubmit`.
+- [ ] Instead of deleting on the button click, add a confimation alert.
+- [x] Display a "No books! Please add one." message when no books are present in the table.
+
 ### Want to learn how to build this?
 
 Check out the [tutorial](https://testdriven.io/developing-a-single-page-app-with-flask-and-vuejs).
