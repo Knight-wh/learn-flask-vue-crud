@@ -4,7 +4,7 @@
       <div class="col-sm-10">
         <h1>Books</h1>
         <hr><br><br>
-        <alert :message=message v-if="showMessage"></alert>
+        <alert :message=message :type=messageType v-if="showMessage"></alert>
         <button
           type="button"
           class="btn btn-success btn-sm"
@@ -200,12 +200,12 @@ export default {
     return {
       activeAddBookModal: false,
       activeEditBookModal: false,
+      books: [],
       addBookForm: {
         title: '',
         author: '',
         read: [],
       },
-      books: [],
       editBookForm: {
         id: '',
         title: '',
@@ -213,6 +213,7 @@ export default {
         read: [],
       },
       message: '',
+      messageType: 'success',
       showMessage: false,
     };
   },
@@ -220,18 +221,14 @@ export default {
     alert: Alert,
   },
   methods: {
-    addBook(payload) {
-      const path = 'http://localhost:5001/books';
-      axios.post(path, payload)
-        .then(() => {
-          this.getBooks();
-          this.message = 'Book added!';
-          this.showMessage = true;
-        })
-        .catch((error) => {
-          console.log(error);
-          this.getBooks();
-        });
+    initForm() {
+      this.addBookForm.title = '';
+      this.addBookForm.author = '';
+      this.addBookForm.read = [];
+      this.editBookForm.id = '';
+      this.editBookForm.title = '';
+      this.editBookForm.author = '';
+      this.editBookForm.read = [];
     },
     getBooks() {
       const path = 'http://localhost:5001/books';
@@ -240,12 +237,52 @@ export default {
           this.books = res.data.books;
         })
         .catch((error) => {
-
           console.error(error);
         });
     },
-    handleAddReset() {
-      this.initForm();
+    addBook(payload) {
+      const path = 'http://localhost:5001/books';
+      axios.post(path, payload)
+        .then(() => {
+          this.getBooks();
+          this.message = 'Book added!';
+          this.messageType = "success";
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          this.message = error;
+          this.messageType = "danger";
+          this.showMessage = true;
+          this.getBooks();
+        });
+    },
+    updateBook(payload, bookID) {
+      const path = `http://localhost:5001/books/${bookID}`;
+      axios.put(path, payload)
+        .then(() => {
+          this.getBooks();
+          this.message = 'Book updated!';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          this.message = "UPDATE ERROR: " + error;
+          this.showMessage = true;
+          this.getBooks();
+        });
+    },
+    removeBook(bookID) {
+      const path = `http://localhost:5001/books/${bookID}`;
+      axios.delete(path)
+        .then(() => {
+          this.getBooks();
+          this.message = 'Book removed!';
+          this.showMessage = true;
+        })
+        .catch((error) => {
+          this.message = "DELETE ERROR: " + error;
+          this.showMessage = true;
+          this.getBooks();
+        });
     },
     handleAddSubmit() {
       this.toggleAddBookModal();
@@ -261,13 +298,8 @@ export default {
       this.addBook(payload);
       this.initForm();
     },
-    handleDeleteBook(book) {
-      this.removeBook(book.id);
-    },
-    handleEditCancel() {
-      this.toggleEditBookModal(null);
+    handleAddReset() {
       this.initForm();
-      this.getBooks(); // why?
     },
     handleEditSubmit() {
       this.toggleEditBookModal(null);
@@ -280,29 +312,18 @@ export default {
       };
       this.updateBook(payload, this.editBookForm.id);
     },
-    initForm() {
-      this.addBookForm.title = '';
-      this.addBookForm.author = '';
-      this.addBookForm.read = [];
-      this.editBookForm.id = '';
-      this.editBookForm.title = '';
-      this.editBookForm.author = '';
-      this.editBookForm.read = [];
+    handleEditCancel() {
+      this.toggleEditBookModal(null);
+      this.initForm();
+      this.getBooks(); // why?
+      // 在点击update按钮后，this.editBookForm = book; editBookForm和book会指向同一个对象
+      // 然后在本函数中，this.initForm(); 会清空this.editBookForm，因此需要this.getBooks()来更新一下
     },
-    removeBook(bookID) {
-      const path = `http://localhost:5001/books/${bookID}`;
-      axios.delete(path)
-        .then(() => {
-          this.getBooks();
-          this.message = 'Book removed!';
-          this.showMessage = true;
-        })
-        .catch((error) => {
-          console.error(error);
-          this.getBooks();
-        });
+    handleDeleteBook(book) {
+      this.removeBook(book.id);
     },
     toggleAddBookModal() {
+      this.showMessage = false;
       const body = document.querySelector('body');
       this.activeAddBookModal = !this.activeAddBookModal;
       if (this.activeAddBookModal) {
@@ -312,6 +333,7 @@ export default {
       }
     },
     toggleEditBookModal(book) {
+      this.showMessage = false;
       if (book) {
         this.editBookForm = book;
       }
@@ -322,19 +344,6 @@ export default {
       } else{
         body.classList.remove('modal-open');
       }
-    },
-    updateBook(payload, bookID) {
-      const path = `http://localhost:5001/books/${bookID}`;
-      axios.put(path, payload)
-        .then(() => {
-          this.getBooks();
-          this.message = 'Book updated!';
-          this.showMessage = true;
-        })
-        .catch((error) => {
-          console.error(error);
-          this.getBooks();
-        });
     },
   },
   created() {
